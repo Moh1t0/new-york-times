@@ -1,6 +1,17 @@
 package com.javacademy.new_york_times.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import com.javacademy.new_york_times.dto.NewsDto;
+import com.javacademy.new_york_times.dto.PageDto;
+import com.javacademy.new_york_times.service.NewsService;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
 
 /**
  * Сделать 7 операций внутри контроллера.
@@ -14,7 +25,52 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/news")
 public class NewsController {
 
+    private final NewsService service;
+    private static final int PAGE_SIZE = 10;
 
+    @PostMapping
+    @CacheEvict(value = "news", key = "all_news")
+    public void createNews(@RequestBody NewsDto newsDto) {
+        service.save(newsDto);
+    }
+
+    @DeleteMapping
+    @CacheEvict(value = "news", key = "all_news")
+    public void deleteNews(@RequestParam Integer number) {
+        service.deleteByNumber(number);
+    }
+
+    @GetMapping("/{id}")
+    @Cacheable(value = "news", key = "#number")
+    public ResponseEntity<NewsDto> getNewsByNumber(@PathVariable Integer number) {
+        NewsDto newsDto = service.findByNumber(number);
+        return ResponseEntity.ok(newsDto);
+    }
+
+    public ResponseEntity<PageDto<NewsDto>> getAllNews(@RequestParam Integer page) {
+        PageDto<NewsDto> all = service.findAll(page);
+        return ResponseEntity.ok(all);
+    }
+
+    @PutMapping("/{id}")
+    @CacheEvict(value = "news", key = "all_news")
+    public void updateNewsByNumber(@PathVariable Integer number, @RequestBody NewsDto newsDto) {
+        service.update(newsDto);
+    }
+
+    @GetMapping("/{id}/text")
+    public ResponseEntity<String> getNewsText(@PathVariable Integer number) {
+        String newsText = service.getNewsText(number);
+        return ResponseEntity.ok(newsText);
+    }
+
+    @GetMapping("/{id}author")
+    public ResponseEntity<String> getAuthorNews(@PathVariable Integer number) {
+        String newsAuthor = service.getNewsAuthor(number);
+        return ResponseEntity.ok(newsAuthor);
+    }
 }
