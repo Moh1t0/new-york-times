@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static org.springframework.http.HttpStatus.*;
 
 
 /**
@@ -32,32 +33,34 @@ public class NewsController {
     private final NewsService service;
     private static final int PAGE_SIZE = 10;
 
-    @PostMapping
-    @CacheEvict(value = "news", key = "all_news")
+    @PostMapping()
+    @CacheEvict("news")
+    @ResponseStatus(CREATED)
     public void createNews(@RequestBody NewsDto newsDto) {
         service.save(newsDto);
     }
 
     @DeleteMapping
-    @CacheEvict(value = "news", key = "all_news")
+    @CacheEvict("news")
     public void deleteNews(@RequestParam Integer number) {
         service.deleteByNumber(number);
     }
 
     @GetMapping("/{id}")
-    @Cacheable(value = "news", key = "#number")
-    public ResponseEntity<NewsDto> getNewsByNumber(@PathVariable Integer number) {
-        NewsDto newsDto = service.findByNumber(number);
-        return ResponseEntity.ok(newsDto);
+    @Cacheable("news")
+    public NewsDto getNewsByNumber(@PathVariable Integer number) {
+        return service.findByNumber(number);
     }
 
-    public ResponseEntity<PageDto<NewsDto>> getAllNews(@RequestParam Integer page) {
-        PageDto<NewsDto> all = service.findAll(page);
+    @GetMapping
+    @Cacheable("news")
+    public ResponseEntity<PageDto> getAllNews(@RequestParam Integer page) {
+        PageDto all = service.findAll(page);
         return ResponseEntity.ok(all);
     }
 
     @PutMapping("/{id}")
-    @CacheEvict(value = "news", key = "all_news")
+    @CacheEvict("news")
     public void updateNewsByNumber(@PathVariable Integer number, @RequestBody NewsDto newsDto) {
         service.update(newsDto);
     }
@@ -73,4 +76,24 @@ public class NewsController {
         String newsAuthor = service.getNewsAuthor(number);
         return ResponseEntity.ok(newsAuthor);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

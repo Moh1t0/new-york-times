@@ -2,6 +2,7 @@ package com.javacademy.new_york_times.repository;
 
 import com.javacademy.new_york_times.entity.NewsEntity;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 

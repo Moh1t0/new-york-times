@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,15 +28,15 @@ public class NewsService {
     /**
      * Переписать этот метод
      */
-    @Cacheable(value = "news", key = "'all_news_' + #page")
-    public PageDto<NewsDto> findAll(int page) {
-        List<NewsDto> newsDtos = newsMapper.toDtos(newsRepository.findAll());
-        int totalPages = (int) Math.ceil((double) newsDtos.size() / PAGE_SIZE);
-        List<NewsDto> collected = newsDtos.stream()
-                .skip(page * PAGE_SIZE)
+    public PageDto findAll(int page) {
+        List<NewsDto> data = newsRepository.findAll().stream()
+                .sorted(Comparator.comparing(NewsEntity::getNumber))
+                .skip(PAGE_SIZE * page)
                 .limit(PAGE_SIZE)
-                .collect(Collectors.toList());
-        return new PageDto<>(collected, totalPages, page, PAGE_SIZE, collected.size());
+                .map(newsMapper::toDto)
+                .toList();
+        int total = newsRepository.findAll().size() / PAGE_SIZE;
+        return new PageDto(data, total, page, PAGE_SIZE, data.size());
     }
 
     public NewsDto findByNumber(Integer number) {
