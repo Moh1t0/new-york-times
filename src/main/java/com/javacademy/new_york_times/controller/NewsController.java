@@ -59,21 +59,37 @@ public class NewsController {
         return ResponseEntity.ok(all);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @CacheEvict("news")
-    public void updateNewsByNumber(@PathVariable Integer number, @RequestBody NewsDto newsDto) {
+    public void updateNewsByNumber(@PathVariable Integer id, @RequestBody NewsDto newsDto) {
+        newsDto.setNumber(id);
         service.update(newsDto);
     }
 
     @GetMapping("/{id}/text")
-    public ResponseEntity<String> getNewsText(@PathVariable Integer number) {
-        String newsText = service.getNewsText(number);
-        return ResponseEntity.ok(newsText);
+    public String getNewsText(@PathVariable Integer id) {
+       return service.getNewsText(id);
     }
 
-    @GetMapping("/{id}author")
-    public ResponseEntity<String> getAuthorNews(@PathVariable Integer number) {
-        String newsAuthor = service.getNewsAuthor(number);
-        return ResponseEntity.ok(newsAuthor);
+    @GetMapping("/{id}/author")
+    public String getAuthorNews(@PathVariable Integer id) {
+       return service.getNewsAuthor(id);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

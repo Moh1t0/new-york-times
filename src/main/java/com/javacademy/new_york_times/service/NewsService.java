@@ -48,7 +48,16 @@ public class NewsService {
     }
 
     public void update(NewsDto dto) {
-        newsRepository.update(newsMapper.toEntity(dto));
+        NewsEntity existingEntity = newsRepository.findByNumber(dto.getNumber())
+                .orElseThrow(() -> new RuntimeException("News with number %s - is not exists".formatted(dto.getNumber())));
+
+        // Обновляем поля существующей сущности
+        existingEntity.setTitle(dto.getTitle());
+        existingEntity.setText(dto.getText());
+        existingEntity.setAuthor(dto.getAuthor());
+
+        // Сохраняем обновленную сущность
+        newsRepository.update(existingEntity);
     }
 
     public String getNewsText(Integer newsNumber) {
