@@ -5,34 +5,30 @@ import com.javacademy.new_york_times.dto.PageDto;
 import com.javacademy.new_york_times.entity.NewsEntity;
 import com.javacademy.new_york_times.repository.NewsRepository;
 import com.javacademy.new_york_times.service.NewsService;
-import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
-import io.restassured.common.mapper.TypeRef;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
+import io.restassured.response.ResponseBodyExtractionOptions;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
-import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+
+@Cacheable(value = "news", condition = "#result != null")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class NewsControllerTest {
@@ -40,17 +36,16 @@ public class NewsControllerTest {
     @Autowired
     private NewsService newsService;
 
-
     private final RequestSpecification requestSpecification = new RequestSpecBuilder()
             .setBasePath("/news")
             .setContentType(ContentType.JSON)
-            .setPort(8080)
             .log(LogDetail.ALL)
             .build();
 
     private final ResponseSpecification responseSpecification = new ResponseSpecBuilder()
             .log(LogDetail.ALL)
             .build();
+
 
     @Test
     @DisplayName("Получение всех новостей по странице")
@@ -119,29 +114,24 @@ public class NewsControllerTest {
                 .spec(responseSpecification)
                 .statusCode(201);
 
-        NewsDto result = newsService.findByNumber(expected.getNumber());
-        assertEquals(expected, result);
+        NewsDto createdNews = newsService.save(createNews);
+        Integer createdNumber = createdNews.getNumber();
 
+        NewsDto result = newsService.findByNumber(createdNumber);
+        assertEquals(expected, result);
     }
 
+    @Test
+    @DisplayName("Удаление новости по id")
+    public void deleteByIdSuccess() {
+        Boolean resultDeleteNews = given(requestSpecification)
+                .delete("/1")
+                .then()
+                .spec(responseSpecification)
+                .statusCode(200)
+                .extract()
+                .as(Boolean.class);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        assertTrue(resultDeleteNews);
+    }
 }

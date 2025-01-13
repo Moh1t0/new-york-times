@@ -6,12 +6,10 @@ import com.javacademy.new_york_times.entity.NewsEntity;
 import com.javacademy.new_york_times.mapper.NewsMapper;
 import com.javacademy.new_york_times.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -21,8 +19,10 @@ public class NewsService {
     private final NewsMapper newsMapper;
     private static final int PAGE_SIZE = 10;
 
-    public void save(NewsDto dto) {
-        newsRepository.save(newsMapper.toEntity(dto));
+    public NewsDto save(NewsDto dto) {
+        NewsEntity entity = newsMapper.toEntity(dto);
+        newsRepository.save(entity);
+        return newsMapper.toDto(entity);
     }
 
     /**
@@ -31,7 +31,7 @@ public class NewsService {
     public PageDto findAll(int page) {
         List<NewsDto> data = newsRepository.findAll().stream()
                 .sorted(Comparator.comparing(NewsEntity::getNumber))
-                .skip(PAGE_SIZE * page)
+                .skip((long) PAGE_SIZE * page)
                 .limit(PAGE_SIZE)
                 .map(newsMapper::toDto)
                 .toList();

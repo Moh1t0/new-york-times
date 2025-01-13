@@ -40,16 +40,16 @@ public class NewsController {
         service.save(newsDto);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @CacheEvict("news")
-    public void deleteNews(@RequestParam Integer number) {
-        service.deleteByNumber(number);
+    public boolean deleteNews(@PathVariable Integer id) {
+        return service.deleteByNumber(id);
     }
 
     @GetMapping("/{id}")
     @Cacheable("news")
-    public NewsDto getNewsByNumber(@PathVariable Integer number) {
-        return service.findByNumber(number);
+    public NewsDto getNewsByNumber(@PathVariable Integer id) {
+        return service.findByNumber(id);
     }
 
     @GetMapping
@@ -76,24 +76,4 @@ public class NewsController {
         String newsAuthor = service.getNewsAuthor(number);
         return ResponseEntity.ok(newsAuthor);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
